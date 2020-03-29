@@ -3,6 +3,7 @@ package com.msl.mongodb.csfle.template;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,11 +12,13 @@ import org.apache.commons.logging.LogFactory;
 import org.bson.BsonBinary;
 import org.bson.BsonString;
 import org.bson.Document;
+import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.core.query.Query;
 
-import com.mongodb.AutoEncryptionSettings;
 import com.mongodb.ClientEncryptionSettings;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -30,6 +33,8 @@ import com.mongodb.client.model.vault.DataKeyOptions;
 import com.mongodb.client.model.vault.EncryptOptions;
 import com.mongodb.client.vault.ClientEncryption;
 import com.mongodb.client.vault.ClientEncryptions;
+import com.msl.mongodb.csfle.converter.BinaryToBsonBinaryConverter;
+import com.msl.mongodb.csfle.converter.BsonBinaryToBinaryConverter;
 import com.msl.mongodb.csfle.model.Person;
 
 public class CSFLEExplicitWithMongoTemplate {
@@ -54,6 +59,13 @@ public class CSFLEExplicitWithMongoTemplate {
 				.build();
 		MongoClient mongoClient = MongoClients.create(clientSettings);
 		MongoOperations mongoOps = new MongoTemplate(mongoClient, dataBaseName);
+	    MappingMongoConverter mongoMapping = (MappingMongoConverter) mongoOps.getConverter();
+	    CustomConversions customConversions = new MongoCustomConversions(
+				Arrays.asList(new BinaryToBsonBinaryConverter(),
+						new BsonBinaryToBinaryConverter()));
+		
+	    mongoMapping.setCustomConversions(customConversions); // tell mongodb to use the custom converters
+	    mongoMapping.afterPropertiesSet();
 
 		// Initialize KeyVaultNameSpace
 		MongoNamespace keyVaultNamespace = new MongoNamespace(keyVaultNamespaceAsString);
@@ -76,7 +88,11 @@ public class CSFLEExplicitWithMongoTemplate {
 		person.setDni(encryptedFieldValue);
 		mongoOps.insert(person);
 
-		log.info(mongoOps.findOne(new Query(where("name").is(name)), Person.class));
+		Person personFound = mongoOps.findOne(new Query(where("dni").is(encryptedFieldValue)), Person.class);
+		log.info("Person foundBy DNI:" + personFound);
+		
+		personFound = mongoOps.findOne(new Query(where("name").is(name)), Person.class);
+		log.info("Person foundBy name:" + personFound);
 	}
 
 //	private static AutoEncryptionSettings getAutoEncryptionSettings() {
