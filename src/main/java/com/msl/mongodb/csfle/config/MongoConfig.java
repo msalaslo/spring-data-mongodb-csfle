@@ -29,11 +29,38 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
 
 	@Value(value = "${spring.data.mongodb.database}")
 	private String DB_DATABASE;
+	
 	@Value(value = "${spring.data.mongodb.uri}")
 	private String DB_CONNECTION;
+	
 	@Autowired
 	private KMSManager kmsManager;
 
+	@Override
+	public MongoClient mongoClient() {
+		kmsManager.buildOrValidateVault();
+		MongoClient mongoClient = new MongoClientImpl(getMongoClientSettings(), getMongoDriverInfo());
+		return mongoClient;
+	}
+
+	@Override
+	protected String getDatabaseName() {
+		return DB_DATABASE;
+	}
+	
+	/**
+	 * Returns the list of custom converters that will be used by the MongoDB template
+	 * These conversions avoid exceptions caused by Spring Data MongoDB retrieving Binary types
+	 * from the repository an converting them to BsonBinary
+	 *
+	 **/
+	public CustomConversions customConversions() {
+		CustomConversions customConversions = new MongoCustomConversions(
+				Arrays.asList(new BinaryToBsonBinaryConverter(),
+						new BsonBinaryToBinaryConverter()));
+		return customConversions;
+	}
+	
 	private MongoDriverInformation  getMongoDriverInfo(){
 		return MongoDriverInformation.builder()
 				.driverName(MongoDriverVersion.NAME)
@@ -48,31 +75,5 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
 		return MongoClientSettings.builder()
 				.applyConnectionString(new ConnectionString(DB_CONNECTION))
 				.build();
-	}
-
-	/**
-	 * Returns the list of custom converters that will be used by the MongoDB template
-	 * These conversions avoid exceptions caused by Spring Data MongoDB retrieving Binary types
-	 * from the repository an converting them to BsonBinary
-	 *
-	 **/
-	public CustomConversions customConversions() {
-		CustomConversions customConversions = new MongoCustomConversions(
-				Arrays.asList(new BinaryToBsonBinaryConverter(),
-						new BsonBinaryToBinaryConverter()));
-		return customConversions;
-	}
-
-
-	@Override
-	public MongoClient mongoClient() {
-		kmsManager.buildOrValidateVault();
-		MongoClient mongoClient = new MongoClientImpl(getMongoClientSettings(),getMongoDriverInfo());
-		return mongoClient;
-	}
-
-	@Override
-	protected String getDatabaseName() {
-		return DB_DATABASE;
 	}
 }

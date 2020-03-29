@@ -128,4 +128,12 @@ public class KMSManager {
 
 		return clientEncryption;
 	}
+	
+	public void deleteKeyVaulCollection(){
+
+		MongoClient mongoClient = MongoClients.create(DB_CONNECTION);
+		MongoCollection<Document> collection = mongoClient.getDatabase(KEY_VAULT_DATABASE).getCollection(KEY_VAULT_COLLECTION);
+		collection.drop();
+
+	}
 }

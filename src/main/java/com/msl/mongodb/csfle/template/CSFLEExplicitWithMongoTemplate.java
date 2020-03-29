@@ -35,6 +35,7 @@ import com.mongodb.client.vault.ClientEncryption;
 import com.mongodb.client.vault.ClientEncryptions;
 import com.msl.mongodb.csfle.converter.BinaryToBsonBinaryConverter;
 import com.msl.mongodb.csfle.converter.BsonBinaryToBinaryConverter;
+import com.msl.mongodb.csfle.model.EncryptedPerson;
 import com.msl.mongodb.csfle.model.Person;
 
 public class CSFLEExplicitWithMongoTemplate {
@@ -84,7 +85,7 @@ public class CSFLEExplicitWithMongoTemplate {
 				new EncryptOptions("AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic").keyId(dataKeyId));
 
 		String name = "JoeEncBsonBinary";
-		Person person = new Person(name, 34);
+		EncryptedPerson person = new EncryptedPerson(name, 34);
 		person.setDni(encryptedFieldValue);
 		mongoOps.insert(person);
 

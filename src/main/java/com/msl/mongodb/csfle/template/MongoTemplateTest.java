@@ -12,6 +12,7 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.msl.mongodb.csfle.model.EncryptedPerson;
 import com.msl.mongodb.csfle.model.Person;
 
 public class MongoTemplateTest {
@@ -29,7 +30,9 @@ public class MongoTemplateTest {
 				.build();
 		MongoClient mongoClient = MongoClients.create(clientSettings);
 		MongoOperations mongoOps = new MongoTemplate(mongoClient, dataBaseName);
-		mongoOps.insert(new Person("Joe", 34));
+		EncryptedPerson encryptedPerson = new EncryptedPerson("MongoTemplateTest", 34);
+//		encryptedPerson.setDni(new BsonBinary());
+		mongoOps.insert(encryptedPerson);
 
 		log.info(mongoOps.findOne(new Query(where("name").is("Joe")), Person.class));
 	}
