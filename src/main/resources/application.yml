@@ -2,7 +2,7 @@ spring:
   data:
     mongodb:
       database: CSFLE-INSTALLATION
-      uri: mongodb+srv://m2m:XBLA92iGDv7NMqCq@bau-cluster-zjisk.mongodb.net/test?retryWrites=true&w=majority
+      uri: ${MONGODB_URI}
       key:
         vault:
           database: "encryption"
@@ -20,6 +20,3 @@ logging:
     com.msl: DEBUG
   pattern:
     console: "%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
-    file: "%d %p %c{1.} [%t] %m%n"
-  file:
-    name: app.log

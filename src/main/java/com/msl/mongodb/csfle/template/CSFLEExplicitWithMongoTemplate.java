@@ -17,6 +17,7 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 import com.mongodb.ClientEncryptionSettings;
@@ -89,11 +90,22 @@ public class CSFLEExplicitWithMongoTemplate {
 		person.setDni(encryptedFieldValue);
 		mongoOps.insert(person);
 
-		Person personFound = mongoOps.findOne(new Query(where("dni").is(encryptedFieldValue)), Person.class);
-		log.info("Person foundBy DNI:" + personFound);
 		
-		personFound = mongoOps.findOne(new Query(where("name").is(name)), Person.class);
+		Person personFound = mongoOps.findOne(new Query(where("name").is(name)), Person.class);
 		log.info("Person foundBy name:" + personFound);
+		
+		personFound = mongoOps.findOne(new Query(where("dni").is(encryptedFieldValue)), Person.class);
+		log.info("Person foundBy DNI:" + personFound);
+
+		
+		
+		String likeName = "Nombre";
+		Query query = new Query();
+		query.limit(10);		
+		query.addCriteria(Criteria.where("name").regex(name));
+		personFound = mongoOps.findOne(query, Person.class);
+		log.info("Person foundBy LIKE name:" + personFound);
+
 	}
 
 //	private static AutoEncryptionSettings getAutoEncryptionSettings() {
